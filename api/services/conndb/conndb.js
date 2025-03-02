@@ -8,22 +8,27 @@ const oracle = oracledb
 
 oracle.outFormat = oracle.OUT_FORMAT_OBJECT;
 
-async function run() {
-
-    const connection = await oracle.getConnection ({
-        user          : process.env.DB_USER,
-        password      : process.env.DB_PASSWORD,
-        connectString : process.env.DB_HOST
-    }).then((connection) => {
-        console.log('Connected to Oracle Database');
-        return connection;
-    }).catch((err) => {
-        console.error(err);
-    });
-
-    // await connection.close();
+async function initialize() {
+    try {
+        await oracledb.createPool({
+            user: process.env.ORACLE_USER,
+            password: process.env.ORACLE_PASSWORD,
+            connectString: process.env.ORACLE_CONNECT_STRING,
+        });
+        console.log('Connection pool iniciado');
+    } catch (err) {
+        console.error('Error al iniciar connection pool', err);
+        process.exit(1);
+    }
 }
 
-run();
+async function close() {
+    try {
+        await oracledb.getPool().close(10);
+        console.log('Connection pool closed');
+    } catch (err) {
+        console.error('Error closing connection pool', err);
+    }
+}
 
-export default oracle;
+export {initialize, close}
